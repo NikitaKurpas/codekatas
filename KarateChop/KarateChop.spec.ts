@@ -1,8 +1,9 @@
-import { iterativeBinarySearch, recursiveBinarySearch } from './KarateChop'
+import { iterativeBinarySearch, ooBinarySearch, recursiveBinarySearch } from './KarateChop'
 
 describe('KarateChop', () => {
   generateTestSuite('iterativeBinarySearch', iterativeBinarySearch)
   generateTestSuite('recursiveBinarySearch', recursiveBinarySearch)
+  generateTestSuite('ooBinarySearch', ooBinarySearch)
 
   function generateTestSuite(suiteName: string, binarySearch: BinarySearchFn) {
     describe(suiteName, () => {
