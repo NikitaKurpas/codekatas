@@ -138,21 +138,24 @@ export function fpBinarySearch(number: number, sortedArray: number[]): number {
   function findRecursively(searchElement: number, arraySlice: number[]): Option<number> {
     return pipe(
       getMidIndex(arraySlice),
-      chain((midIndex) => {
-        const midElement = arraySlice[midIndex]
-        if (searchElement < midElement) {
-          const end = midIndex - 1
-          return findRecursively(searchElement, arraySlice.slice(0, end + 1))
-        } else if (searchElement > midElement) {
-          const start = midIndex + 1
-          return pipe(
-            findRecursively(searchElement, arraySlice.slice(start)),
-            map((index) => start + index)
+      chain((midIndex) =>
+        pipe(
+          searchElement === arraySlice[midIndex] ? some(midIndex) : none,
+          alt(() =>
+            pipe(
+              searchElement < arraySlice[midIndex] ? some(arraySlice.slice(0, midIndex)) : none,
+              chain((leftSlice) => findRecursively(searchElement, leftSlice))
+            )
+          ),
+          alt(() =>
+            pipe(
+              searchElement > arraySlice[midIndex] ? some(arraySlice.slice(midIndex + 1)) : none,
+              chain((rightSlice) => findRecursively(searchElement, rightSlice)),
+              map((searchElementIndex) => midIndex + 1 + searchElementIndex)
+            )
           )
-        } else {
-          return some(midIndex)
-        }
-      })
+        )
+      )
     )
   }
   function getMidIndex(array: unknown[]): Option<number> {
@@ -178,15 +181,31 @@ export function fpBinarySearch(number: number, sortedArray: number[]): number {
   function fold<T, U>(onNone: () => U, onSome: (value: T) => U): (option: Option<T>) => U {
     return (option) => (isNone(option) ? onNone() : onSome(option.value))
   }
+  function alt<T>(lazyOther: () => Option<T>): (option: Option<T>) => Option<T> {
+    return (option) => (isNone(option) ? lazyOther() : option)
+  }
 
   function pipe<T, V1>(value: T, fn: (value: T) => V1): V1
   function pipe<T, V1, V2>(value: T, fn1: (value: T) => V1, fn2: (value: V1) => V2): V2
-  function pipe<T, V1, V2>(value: T, fn1?: (value: T) => V1, fn2?: (value: V1) => V2): unknown {
+  function pipe<T, V1, V2, V3>(
+    value: T,
+    fn1: (value: T) => V1,
+    fn3: (value: V1) => V2,
+    fn2: (value: V2) => V3
+  ): V3
+  function pipe<T, V1, V2, V3>(
+    value: T,
+    fn1?: (value: T) => V1,
+    fn2?: (value: V1) => V2,
+    fn3?: (value: V2) => V3
+  ): unknown {
     switch (arguments.length) {
       case 2:
         return fn1!(value)
       case 3:
         return fn2!(fn1!(value))
+      case 4:
+        return fn3!(fn2!(fn1!(value)))
     }
   }
 
