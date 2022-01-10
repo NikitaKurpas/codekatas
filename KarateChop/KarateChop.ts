@@ -135,31 +135,31 @@ export function ooBinarySearch(number: number, sortedArray: number[]): number {
 }
 
 export function fpBinarySearch(number: number, sortedArray: number[]): number {
-  function findRecursively(searchElement: number, arraySlice: number[]): Option<number> {
-    return pipe(
-      getMidIndex(arraySlice),
-      chain((midIndex) =>
-        pipe(
-          searchElement === arraySlice[midIndex] ? some(midIndex) : none,
-          alt(() =>
-            pipe(
-              searchElement < arraySlice[midIndex] ? some(arraySlice.slice(0, midIndex)) : none,
-              chain((leftSlice) => findRecursively(searchElement, leftSlice))
-            )
-          ),
-          alt(() =>
-            pipe(
-              searchElement > arraySlice[midIndex] ? some(arraySlice.slice(midIndex + 1)) : none,
-              chain((rightSlice) => findRecursively(searchElement, rightSlice)),
-              map((searchElementIndex) => midIndex + 1 + searchElementIndex)
-            )
-          )
+  function findRecursively(searchElement: number): (arraySlice: number[]) => Option<number> {
+    return (arraySlice) =>
+      pipe(
+        getMidIndex(arraySlice),
+        map((midIndex) => [midIndex, arraySlice[midIndex]]),
+        chain(([midIndex, midElement]) =>
+          searchElement === midElement
+            ? some(midIndex)
+            : searchElement < midElement
+            ? pipe(arraySlice.slice(0, midIndex), findRecursively(searchElement))
+            : searchElement > midElement
+            ? pipe(
+                arraySlice.slice(midIndex + 1),
+                findRecursively(searchElement),
+                map(add(midIndex + 1))
+              )
+            : none
         )
       )
-    )
   }
   function getMidIndex(array: unknown[]): Option<number> {
     return array.length === 0 ? none : some(Math.floor(array.length / 2))
+  }
+  function add(a: number): (b: number) => number {
+    return (b) => a + b
   }
 
   type Option<T> = Some<T> | None
@@ -180,9 +180,6 @@ export function fpBinarySearch(number: number, sortedArray: number[]): number {
   }
   function fold<T, U>(onNone: () => U, onSome: (value: T) => U): (option: Option<T>) => U {
     return (option) => (isNone(option) ? onNone() : onSome(option.value))
-  }
-  function alt<T>(lazyOther: () => Option<T>): (option: Option<T>) => Option<T> {
-    return (option) => (isNone(option) ? lazyOther() : option)
   }
 
   function pipe<T, V1>(value: T, fn: (value: T) => V1): V1
@@ -210,7 +207,8 @@ export function fpBinarySearch(number: number, sortedArray: number[]): number {
   }
 
   return pipe(
-    findRecursively(number, sortedArray),
+    sortedArray,
+    findRecursively(number),
     fold(
       () => -1,
       (index) => index
