@@ -24,22 +24,22 @@ export function iterativeBinarySearch(number: number, sortedArray: number[]): nu
 }
 
 export function recursiveBinarySearch(number: number, sortedArray: number[]): number {
-  function recurse(target: number, array: number[], left: number, right: number): number {
+  function findRecursively(target: number, array: number[], left: number, right: number): number {
     if (left > right) {
       return -1
     }
 
     const mid = Math.floor((left + right) / 2)
     if (target < array[mid]) {
-      return recurse(target, array, left, mid - 1)
+      return findRecursively(target, array, left, mid - 1)
     } else if (target > array[mid]) {
-      return recurse(target, array, mid + 1, right)
+      return findRecursively(target, array, mid + 1, right)
     } else {
       return mid
     }
   }
 
-  return recurse(number, sortedArray, 0, sortedArray.length - 1)
+  return findRecursively(number, sortedArray, 0, sortedArray.length - 1)
 }
 
 export function ooBinarySearch(number: number, sortedArray: number[]): number {
@@ -132,4 +132,69 @@ export function ooBinarySearch(number: number, sortedArray: number[]): number {
     return o1 - o2
   }
   return new BinarySearch(numberCompare).findIndex(searchWindow, number)
+}
+
+export function fpBinarySearch(number: number, sortedArray: number[]): number {
+  function findRecursively(searchElement: number, arraySlice: number[]): Option<number> {
+    return pipe(
+      getMidIndex(arraySlice),
+      chain((midIndex) => {
+        const midElement = arraySlice[midIndex]
+        if (searchElement < midElement) {
+          const end = midIndex - 1
+          return findRecursively(searchElement, arraySlice.slice(0, end + 1))
+        } else if (searchElement > midElement) {
+          const start = midIndex + 1
+          return pipe(
+            findRecursively(searchElement, arraySlice.slice(start)),
+            map((index) => start + index)
+          )
+        } else {
+          return some(midIndex)
+        }
+      })
+    )
+  }
+  function getMidIndex(array: unknown[]): Option<number> {
+    return array.length === 0 ? none : some(Math.floor(array.length / 2))
+  }
+
+  type Option<T> = Some<T> | None
+  type Some<T> = { readonly __brand: 'some'; readonly value: T }
+  type None = { readonly __brand: 'none' }
+  function some<T>(value: T): Some<T> {
+    return { __brand: 'some', value }
+  }
+  const none: None = { __brand: 'none' }
+  function isNone(option: Option<any>): option is None {
+    return option.__brand === 'none'
+  }
+  function chain<T, U>(mapper: (value: T) => Option<U>): (option: Option<T>) => Option<U> {
+    return (option) => (isNone(option) ? none : mapper(option.value))
+  }
+  function map<T, U>(mapper: (value: T) => U): (option: Option<T>) => Option<U> {
+    return (option) => (isNone(option) ? none : some(mapper(option.value)))
+  }
+  function fold<T, U>(onNone: () => U, onSome: (value: T) => U): (option: Option<T>) => U {
+    return (option) => (isNone(option) ? onNone() : onSome(option.value))
+  }
+
+  function pipe<T, V1>(value: T, fn: (value: T) => V1): V1
+  function pipe<T, V1, V2>(value: T, fn1: (value: T) => V1, fn2: (value: V1) => V2): V2
+  function pipe<T, V1, V2>(value: T, fn1?: (value: T) => V1, fn2?: (value: V1) => V2): unknown {
+    switch (arguments.length) {
+      case 2:
+        return fn1!(value)
+      case 3:
+        return fn2!(fn1!(value))
+    }
+  }
+
+  return pipe(
+    findRecursively(number, sortedArray),
+    fold(
+      () => -1,
+      (index) => index
+    )
+  )
 }
