@@ -5,18 +5,19 @@
  * the latter.
  */
 export function iterativeBinarySearch(number: number, sortedArray: number[]): number {
-  let left = 0
-  let right = sortedArray.length - 1
+  let leftIndex = 0
+  let rightIndex = sortedArray.length - 1
 
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2)
+  while (leftIndex <= rightIndex) {
+    const midIndex = Math.floor((leftIndex + rightIndex) / 2)
+    const midElement = sortedArray[midIndex]
 
-    if (number < sortedArray[mid]) {
-      right = mid - 1
-    } else if (number > sortedArray[mid]) {
-      left = mid + 1
+    if (number < midElement) {
+      rightIndex = midIndex - 1
+    } else if (number > midElement) {
+      leftIndex = midIndex + 1
     } else {
-      return mid
+      return midIndex
     }
   }
 
@@ -24,22 +25,29 @@ export function iterativeBinarySearch(number: number, sortedArray: number[]): nu
 }
 
 export function recursiveBinarySearch(number: number, sortedArray: number[]): number {
-  function findRecursively(target: number, array: number[], left: number, right: number): number {
-    if (left > right) {
+  function findRecursively(
+    searchElement: number,
+    array: number[],
+    leftIndex: number = 0,
+    rightIndex: number = array.length - 1
+  ): number {
+    if (leftIndex > rightIndex) {
       return -1
     }
 
-    const mid = Math.floor((left + right) / 2)
-    if (target < array[mid]) {
-      return findRecursively(target, array, left, mid - 1)
-    } else if (target > array[mid]) {
-      return findRecursively(target, array, mid + 1, right)
+    const midIndex = Math.floor((leftIndex + rightIndex) / 2)
+    const midElement = array[midIndex]
+
+    if (searchElement < midElement) {
+      return findRecursively(searchElement, array, leftIndex, midIndex - 1)
+    } else if (searchElement > midElement) {
+      return findRecursively(searchElement, array, midIndex + 1, rightIndex)
     } else {
-      return mid
+      return midIndex
     }
   }
 
-  return findRecursively(number, sortedArray, 0, sortedArray.length - 1)
+  return findRecursively(number, sortedArray)
 }
 
 export function ooBinarySearch(number: number, sortedArray: number[]): number {
@@ -48,28 +56,26 @@ export function ooBinarySearch(number: number, sortedArray: number[]): number {
 
     constructor(private readonly compareFn: CompareFn<T>) {}
 
-    findIndex(theWindow: SearchWindow<T>, searchElement: T): number {
-      let window = theWindow
-
-      while (!window.isEmpty()) {
-        if (this.isSearchElementInLeftHalf(searchElement, window)) {
-          window = window.leftHalfWithoutMid()
-        } else if (this.isSearchElementInRightHalf(searchElement, window)) {
-          window = window.rightHalfWithoutMid()
+    findIndex(window: BinarySearchWindow<T>, searchElement: T): number {
+      for (let currentWindow = window; !currentWindow.isEmpty(); ) {
+        if (this.isSearchElementInLeftHalf(searchElement, currentWindow)) {
+          currentWindow = currentWindow.leftHalfWithoutMid()
+        } else if (this.isSearchElementInRightHalf(searchElement, currentWindow)) {
+          currentWindow = currentWindow.rightHalfWithoutMid()
         } else {
-          return window.midIndex()
+          return currentWindow.midIndex()
         }
       }
 
       return BinarySearch.NOT_FOUND
     }
 
-    private isSearchElementInLeftHalf(target: T, window: SearchWindow<T>) {
-      return this.compareFn(target, window.midElement()) < 0
+    private isSearchElementInLeftHalf(searchElement: T, window: BinarySearchWindow<T>) {
+      return this.compareFn(searchElement, window.midElement()) < 0
     }
 
-    private isSearchElementInRightHalf(target: T, window: SearchWindow<T>) {
-      return this.compareFn(target, window.midElement()) > 0
+    private isSearchElementInRightHalf(searchElement: T, window: BinarySearchWindow<T>) {
+      return this.compareFn(searchElement, window.midElement()) > 0
     }
   }
 
@@ -77,24 +83,24 @@ export function ooBinarySearch(number: number, sortedArray: number[]): number {
     (o1: T, o2: T): number
   }
 
-  interface SearchWindow<T> {
+  interface BinarySearchWindow<T> {
     midElement(): T
     midIndex(): number
 
-    leftHalfWithoutMid(): SearchWindow<T>
-    rightHalfWithoutMid(): SearchWindow<T>
+    leftHalfWithoutMid(): BinarySearchWindow<T>
+    rightHalfWithoutMid(): BinarySearchWindow<T>
 
     isEmpty(): boolean
   }
 
-  class ArraySearchWindow<T> implements SearchWindow<T> {
+  class ArraySearchWindow<T> implements BinarySearchWindow<T> {
     constructor(
       private readonly array: ReadonlyArray<T>,
-      private readonly start: number = 0,
-      private readonly end: number = array.length - 1
+      private readonly startIndex: number = 0,
+      private readonly endIndex: number = array.length - 1
     ) {
-      assert(start >= 0, 'Start cannot be less than 0')
-      assert(end <= array.length - 1, 'End cannot be larger than the last index')
+      assert(startIndex >= 0, 'Start cannot be less than 0')
+      assert(endIndex <= array.length - 1, 'End cannot be larger than the last index')
     }
 
     midElement(): T {
@@ -103,21 +109,21 @@ export function ooBinarySearch(number: number, sortedArray: number[]): number {
 
     midIndex(): number {
       if (this.isEmpty()) {
-        throw new Error('Cannot get mid index of empty window')
+        throw new Error('Search window is empty')
       }
-      return Math.floor((this.start + this.end) / 2)
+      return Math.floor((this.startIndex + this.endIndex) / 2)
     }
 
-    leftHalfWithoutMid(): SearchWindow<T> {
-      return new ArraySearchWindow(this.array, this.start, this.midIndex() - 1)
+    leftHalfWithoutMid(): BinarySearchWindow<T> {
+      return new ArraySearchWindow(this.array, this.startIndex, this.midIndex() - 1)
     }
 
-    rightHalfWithoutMid(): SearchWindow<T> {
-      return new ArraySearchWindow(this.array, this.midIndex() + 1, this.end)
+    rightHalfWithoutMid(): BinarySearchWindow<T> {
+      return new ArraySearchWindow(this.array, this.midIndex() + 1, this.endIndex)
     }
 
     isEmpty(): boolean {
-      return this.end < this.start
+      return this.endIndex < this.startIndex
     }
   }
 
@@ -184,25 +190,12 @@ export function fpBinarySearch(number: number, sortedArray: number[]): number {
 
   function pipe<T, V1>(value: T, fn: (value: T) => V1): V1
   function pipe<T, V1, V2>(value: T, fn1: (value: T) => V1, fn2: (value: V1) => V2): V2
-  function pipe<T, V1, V2, V3>(
-    value: T,
-    fn1: (value: T) => V1,
-    fn3: (value: V1) => V2,
-    fn2: (value: V2) => V3
-  ): V3
-  function pipe<T, V1, V2, V3>(
-    value: T,
-    fn1?: (value: T) => V1,
-    fn2?: (value: V1) => V2,
-    fn3?: (value: V2) => V3
-  ): unknown {
+  function pipe<T, V1, V2>(value: T, fn1?: (value: T) => V1, fn2?: (value: V1) => V2): unknown {
     switch (arguments.length) {
       case 2:
         return fn1!(value)
       case 3:
         return fn2!(fn1!(value))
-      case 4:
-        return fn3!(fn2!(fn1!(value)))
     }
   }
 
