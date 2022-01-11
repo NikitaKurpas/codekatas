@@ -7,54 +7,69 @@ import {
 } from './KarateChop'
 
 describe('KarateChop', () => {
-  generateTestSuite('iterativeBinarySearch', iterativeBinarySearch)
-  generateTestSuite('recursiveBinarySearch', recursiveBinarySearch)
-  generateTestSuite('ooBinarySearch', ooBinarySearch)
-  generateTestSuite('fpBinarySearch', fpBinarySearch)
-  generateTestSuite('generatorBinarySearch', generatorBinarySearch)
+  describe('iterativeBinarySearch', () => {
+    generateTestSuite(iterativeBinarySearch)
+  })
 
-  function generateTestSuite(suiteName: string, binarySearch: BinarySearchFn) {
-    describe(suiteName, () => {
-      it('should return -1 when the number is absent from the array', () => {
-        expect(binarySearch(3, [])).toBe(-1)
-        expect(binarySearch(3, [1])).toBe(-1)
-        expect(binarySearch(0, [1, 3, 5])).toBe(-1)
-        expect(binarySearch(2, [1, 3, 5])).toBe(-1)
-        expect(binarySearch(4, [1, 3, 5])).toBe(-1)
-        expect(binarySearch(6, [1, 3, 5])).toBe(-1)
-        expect(binarySearch(0, [1, 3, 5, 7])).toBe(-1)
-        expect(binarySearch(2, [1, 3, 5, 7])).toBe(-1)
-        expect(binarySearch(4, [1, 3, 5, 7])).toBe(-1)
-        expect(binarySearch(6, [1, 3, 5, 7])).toBe(-1)
-        expect(binarySearch(8, [1, 3, 5, 7])).toBe(-1)
-      })
+  describe('recursiveBinarySearch', () => {
+    generateTestSuite(recursiveBinarySearch)
+  })
 
-      it('should return the index of the number when it is present is in the array', () => {
-        expect(binarySearch(1, [1])).toBe(0)
-        expect(binarySearch(1, [1, 3, 5])).toBe(0)
-        expect(binarySearch(3, [1, 3, 5])).toBe(1)
-        expect(binarySearch(5, [1, 3, 5])).toBe(2)
-        expect(binarySearch(1, [1, 3, 5, 7])).toBe(0)
-        expect(binarySearch(3, [1, 3, 5, 7])).toBe(1)
-        expect(binarySearch(5, [1, 3, 5, 7])).toBe(2)
-        expect(binarySearch(7, [1, 3, 5, 7])).toBe(3)
-      })
+  describe('ooBinarySearch', () => {
+    generateTestSuite(ooBinarySearch)
+  })
 
-      it.skip('should behave like a binary search', () => {
-        const floorSpy = jest.spyOn(Math, 'floor')
+  describe('fpBinarySearch', () => {
+    generateTestSuite(fpBinarySearch)
+  })
 
-        binarySearch(1, [1, 3, 5, 7])
-        expect(floorSpy).toBeCalledTimes(2)
-        floorSpy.mockClear()
+  describe('generatorBinarySearch', () => {
+    generateTestSuite(generatorBinarySearch)
+  })
 
-        binarySearch(3, [1, 3, 5, 7])
-        expect(floorSpy).toBeCalledTimes(1)
-        floorSpy.mockClear()
+  function generateTestSuite(binarySearch: BinarySearchFn) {
+    it('should return -1 given an empty array', () => {
+      expect(binarySearch(3, [])).toBe(-1)
+    })
 
-        binarySearch(7, [1, 3, 5, 7])
-        expect(floorSpy).toBeCalledTimes(3)
-        floorSpy.mockClear()
-      })
+    it('should return -1 when the number is absent from the array', () => {
+      expect(binarySearch(3, [1])).toBe(-1)
+      expect(binarySearch(0, [1, 3, 5])).toBe(-1)
+      expect(binarySearch(2, [1, 3, 5])).toBe(-1)
+      expect(binarySearch(4, [1, 3, 5])).toBe(-1)
+      expect(binarySearch(6, [1, 3, 5])).toBe(-1)
+      expect(binarySearch(0, [1, 3, 5, 7])).toBe(-1)
+      expect(binarySearch(2, [1, 3, 5, 7])).toBe(-1)
+      expect(binarySearch(4, [1, 3, 5, 7])).toBe(-1)
+      expect(binarySearch(6, [1, 3, 5, 7])).toBe(-1)
+      expect(binarySearch(8, [1, 3, 5, 7])).toBe(-1)
+    })
+
+    it('should return the index of the number when it is present is in the array', () => {
+      expect(binarySearch(1, [1])).toBe(0)
+      expect(binarySearch(1, [1, 3, 5])).toBe(0)
+      expect(binarySearch(3, [1, 3, 5])).toBe(1)
+      expect(binarySearch(5, [1, 3, 5])).toBe(2)
+      expect(binarySearch(1, [1, 3, 5, 7])).toBe(0)
+      expect(binarySearch(3, [1, 3, 5, 7])).toBe(1)
+      expect(binarySearch(5, [1, 3, 5, 7])).toBe(2)
+      expect(binarySearch(7, [1, 3, 5, 7])).toBe(3)
+    })
+
+    it.skip('should behave like a binary search', () => {
+      const floorSpy = jest.spyOn(Math, 'floor')
+
+      binarySearch(1, [1, 3, 5, 7])
+      expect(floorSpy).toBeCalledTimes(2)
+      floorSpy.mockClear()
+
+      binarySearch(3, [1, 3, 5, 7])
+      expect(floorSpy).toBeCalledTimes(1)
+      floorSpy.mockClear()
+
+      binarySearch(7, [1, 3, 5, 7])
+      expect(floorSpy).toBeCalledTimes(3)
+      floorSpy.mockClear()
     })
   }
   interface BinarySearchFn {
