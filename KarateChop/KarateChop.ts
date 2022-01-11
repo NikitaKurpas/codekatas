@@ -215,3 +215,30 @@ export function fpBinarySearch(number: number, sortedArray: number[]): number {
     )
   )
 }
+
+export function generatorBinarySearch(number: number, sortedArray: number[]): number {
+  function* makeSearchGenerator<T>(array: T[]): Generator<T, number, number> {
+    let startIndex = 0
+    let endIndex = array.length - 1
+    while (startIndex <= endIndex) {
+      const midIndex = Math.floor((startIndex + endIndex) / 2)
+      const midElement = array[midIndex]
+      const compareResult = yield midElement
+
+      if (compareResult < 0) {
+        endIndex = midIndex - 1
+      } else if (compareResult > 0) {
+        startIndex = midIndex + 1
+      } else {
+        return midIndex
+      }
+    }
+
+    return -1
+  }
+
+  const searchGenerator = makeSearchGenerator(sortedArray)
+  let next = searchGenerator.next()
+  for (; !next.done; next = searchGenerator.next(number - next.value)) {}
+  return next.value
+}

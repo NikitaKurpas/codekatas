@@ -1,5 +1,6 @@
 import {
   fpBinarySearch,
+  generatorBinarySearch,
   iterativeBinarySearch,
   ooBinarySearch,
   recursiveBinarySearch,
@@ -10,6 +11,7 @@ describe('KarateChop', () => {
   generateTestSuite('recursiveBinarySearch', recursiveBinarySearch)
   generateTestSuite('ooBinarySearch', ooBinarySearch)
   generateTestSuite('fpBinarySearch', fpBinarySearch)
+  generateTestSuite('generatorBinarySearch', generatorBinarySearch)
 
   function generateTestSuite(suiteName: string, binarySearch: BinarySearchFn) {
     describe(suiteName, () => {
